@@ -1,3 +1,5 @@
+var lt = require('long-timeout')
+
 function MemoryCache() {
   this.cache = {}
   this.size = 0
@@ -10,10 +12,10 @@ MemoryCache.prototype.add = function(key, value, time, timeoutCallback) {
   var entry = {
     value: value,
     expire: time + Date.now(),
-    timeout: setTimeout(function() {
+    timeout: lt.setTimeout(function() {
       instance.delete(key)
       return timeoutCallback && typeof timeoutCallback === 'function' && timeoutCallback(value, key)
-    }, time)
+    }, time),
   }
 
   this.cache[key] = entry
@@ -26,7 +28,7 @@ MemoryCache.prototype.delete = function(key) {
   var entry = this.cache[key]
 
   if (entry) {
-    clearTimeout(entry.timeout)
+    lt.clearTimeout(entry.timeout)
   }
 
   delete this.cache[key]

@@ -1,6 +1,7 @@
 var url = require('url')
 var MemoryCache = require('./memory-cache')
 var pkg = require('../package.json')
+var lt = require('long-timeout')
 
 var t = {
   ms: 1,
@@ -145,9 +146,9 @@ function ApiCache() {
     }
 
     // add automatic cache clearing from duration, includes max limit on setTimeout
-    timers[key] = setTimeout(function() {
+    timers[key] = lt.setTimeout(function() {
       instance.clear(key, true)
-    }, Math.min(duration, 2147483647))
+    }, duration)
   }
 
   function accumulateContent(res, content) {
@@ -302,7 +303,7 @@ function ApiCache() {
 
       group.forEach(function(key) {
         debug('clearing cached entry for "' + key + '"')
-        clearTimeout(timers[key])
+        lt.clearTimeout(timers[key])
         delete timers[key]
         if (!globalOptions.redisClient) {
           memCache.delete(key)
@@ -319,7 +320,7 @@ function ApiCache() {
       delete index.groups[target]
     } else if (target) {
       debug('clearing ' + (isAutomatic ? 'expired' : 'cached') + ' entry for "' + target + '"')
-      clearTimeout(timers[target])
+      lt.clearTimeout(timers[target])
       delete timers[target]
       // clear actual cached entry
       if (!redis) {
@@ -352,7 +353,7 @@ function ApiCache() {
       } else {
         // clear redis keys one by one from internal index to prevent clearing non-apicache entries
         index.all.forEach(function(key) {
-          clearTimeout(timers[key])
+          lt.clearTimeout(timers[key])
           delete timers[key]
           try {
             redis.del(key)
